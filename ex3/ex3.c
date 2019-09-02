@@ -77,22 +77,108 @@ int main()
 
 void collapseSubNodes(int position,node* targetNode)
 {
-	// TODO
+	int total = 0;
+	if (targetNode != NULL){
+		if (targetNode->subNodeHead != NULL){
+			node *p = targetNode->subNodeHead;
+			while(p){
+				p = p->nextNode;
+				total += p->data;
+			}
+		}
+	}
+
+	free(targetNode->subNodeHead);
+	node *r = (node *)malloc(sizeof(node));
+	r->data = total + targetNode->data;
+	node *prev = targetNode->previousNode;
+	node *next = targetNode->nextNode;
+	prev->nextNode = r;
+	r->nextNode = next;
 }
 
 void insertNodeNext(int position,int value, node* originNode)
 {
-	// Use implementation from ex2. 
+	node *p, *q;
+	int i;
+	p = (node *)
+		malloc(sizeof(node));
+	p->data = value;
+
+	p->nextNode = NULL;
+	q = originNode;
+	for (i = 0; i < position; i++)
+	{
+		q = q->nextNode;
+	}
+	p->previousNode = originNode;
+	p->nextNode = q->nextNode;
+
+	q->nextNode->previousNode = p;
+	q->nextNode = p;
 }	
 
 void insertNodePrevious(int position,int value, node* originNode)
 {
-	// Use implementation from ex2. 
+	node *p, *q;
+	int i;
+	p = (node *)
+		malloc(sizeof(node));
+	p->data = value;
+	// 	int someInt = position;
+	// char str[12];
+	// sprintf(str, "%d", someInt);
+	p->nextNode = NULL;
+	q = originNode;
+	if (position > 0)
+	{
+		for (i = 0; i < position - 1; i++)
+		{
+			q = q->nextNode;
+		}
+
+		p->previousNode = q;
+		p->nextNode = q->nextNode;
+
+		// rebuild old links(watch the order)
+		q->nextNode->previousNode = p;
+		q->nextNode = p;
+	}
+	else
+	{
+		// build new links
+		p->nextNode = originNode;
+		p->previousNode = originNode->previousNode;
+
+		// rebuild old links(watch the order)
+		originNode->previousNode->nextNode = p;
+		originNode->previousNode = p;
+	}
 }
 
 void insertSubNode(int position,int subPosition,int value,node* originNode)
 {
-	// Use implementation from ex2. 
+	int i;
+	subNode *p, *r;
+	node *q;
+	q = originNode;
+	p = (subNode *)
+		malloc(sizeof(subNode));
+	p->data = value;
+		for (i = 0; i < position; i++)
+		{
+			q = q->nextNode;
+		}
+
+
+	if (q->subNodeHead == NULL){
+		q-> subNodeHead = (subNode *)
+		malloc(sizeof(subNode));
+	}else if(subPosition == 0){
+		q->subNodeHead = p;
+
+	}else
+		insertSubNodeNext(subPosition, value, q->subNodeHead);
 }
 
 void deleteAllSubNodes (node* targetNode)
@@ -102,12 +188,34 @@ void deleteAllSubNodes (node* targetNode)
 
 void deleteNode (int position,node* originNode)
 {
-	// Use implementation from ex2. 
+	node *p, *q;
+	q = originNode;
+	int i;
+	for (i = 0; i < position; i++)
+	{
+		p = q;
+		q = q->nextNode;
+	}
+
+	p->nextNode = q->nextNode;
+	free(q);
 }
 
 void deleteList(node* originNode)
 {
-	// Use implementation from ex2. 
+	node *p;
+    p = originNode;
+    node *q;
+    while (p->nextNode != originNode || p != originNode)
+    {
+        q = (node *)malloc(sizeof(node));
+        q = p;
+        p = p->nextNode;
+        
+        q->nextNode = p->nextNode;
+        p->previousNode = originNode;
+        free(q);
+    } 
 }
 
 

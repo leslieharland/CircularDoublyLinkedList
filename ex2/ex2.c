@@ -77,7 +77,7 @@ int main()
 	}
 
 	printList(originNode);
-	deleteList(originNode);
+	//deleteList(originNode);
 
 	printf("Circular List after delete\n");
 	printList(originNode);
@@ -96,23 +96,21 @@ void insertSubNode(int position, int subPosition, int value, node *originNode)
 	p = (subNode *)
 		malloc(sizeof(subNode));
 	p->data = value;
-	for (i = 0; i < position; i++)
-	{
-		q = q->nextNode;
-	}
+		for (i = 0; i < position; i++)
+		{
+			q = q->nextNode;
+		}
 
-	r = q->subNodeHead ;
-	if (q->subNodeHead == NULL)
-	{
-		p->nextSubNode = r->nextSubNode;
-		r->nextSubNode = p;
-
-	}
-	else
-	{
-		int count = getCount(q->subNodeHead);
-		if (subPosition < count)
-			insertSubNodeNext(5, value, q->subNodeHead);
+	
+	if (q->subNodeHead == NULL){
+		subNode * s = (subNode *)
+		malloc(sizeof(subNode));
+		s->data = value;
+		s->nextSubNode = q->subNodeHead;
+		q->subNodeHead = s;
+	
+	}else{
+		insertSubNodeNext(subPosition, value, q->subNodeHead);
 	}
 }
 
@@ -167,23 +165,31 @@ void insertNodePrevious(int position, int value, node *originNode)
 	}
 }
 
-void insertSubNodeNext(int position, int value, subNode *originNode)
+void insertSubNodeNext(int position, int value, subNode *sub)
 {
-	subNode *p, *q;
-	int i;
+	subNode *p;
 	p = (subNode *)
 		malloc(sizeof(subNode));
+	if (p == NULL) return;
 	p->data = value;
+	 subNode* current = sub;
+     subNode* previous = NULL;
 
-	p->nextSubNode = NULL;
-	q = originNode;
-	for (i = 0; i < position; i++)
-	{
-		q = q->nextSubNode;
-	}
+    int i = 0;
 
-	p->nextSubNode = q->nextSubNode;
-	q->nextSubNode = p;
+    while (i < position) {
+      previous = current;
+      current = current->nextSubNode;
+
+      if (current == NULL) {
+        break;
+      }
+
+       i++;
+      }
+
+      p->nextSubNode = current;
+      previous->nextSubNode = p;
 }
 
 
@@ -237,6 +243,7 @@ void deleteList(node *originNode)
     while (p->nextNode != originNode || p != originNode)
     {
         q = (node *)malloc(sizeof(node));
+		if (q == NULL) return;
         q = p;
         p = p->nextNode;
         
