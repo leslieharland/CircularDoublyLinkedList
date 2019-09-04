@@ -113,7 +113,7 @@ void insertNodeNext(int position, int value, node *originNode)
 	p->data = value;
 
 	q = originNode;
-	for (i = 0; i < position - 1; i++)
+	for (i = 0; i < position; i++)
 	{
 		q = q->nextNode;
 	}

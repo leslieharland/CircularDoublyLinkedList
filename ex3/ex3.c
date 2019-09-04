@@ -86,8 +86,10 @@ int main()
 		else if (instruction == PREVIOUS)
 		{
 			scanf("%i", &value);
-			insertNodePreviousCall(position,value, originNode);
-		}else if (instruction == COLLAPSE){
+			insertNodePreviousCall(position, value, originNode);
+		}
+		else if (instruction == COLLAPSE)
+		{
 			scanf("%i", &value);
 			collapseCall(position, originNode);
 		}
@@ -107,25 +109,29 @@ int main()
 
 void collapseSubNodes(int position, node *targetNode)
 {
+	node *p = targetNode;
+	for (int i = 0; i < position ; i++)
+	{
 
-	int total = 0;
-		if (targetNode->subNodeHead != NULL)
-		{
-					
-			subNode *p = targetNode->subNodeHead;
-			
-			for (int i = 0; i < position + 1; i++)
-			{	
-				total += p->data;
-				p = p->nextSubNode;
-				
-
-			}
-	
-	
+		p = p->nextNode;
 	}
+	int total = 0;
 
-	deleteAllSubNodes(targetNode);
+	subNode *s = p->subNodeHead;
+	while (s != NULL)
+	{
+		total += s->data;
+		s = s->nextSubNode;
+	
+		
+		
+		
+	}
+	
+
+	p->data = p->data + total;
+
+	deleteAllSubNodes(p);
 }
 
 void insertNodeNext(int position, int value, node *originNode)
@@ -245,7 +251,7 @@ void deleteSubNode(int position, subNode *originNode)
 
 void deleteAllSubNodes(node *targetNode)
 {
-	subNode * temp;
+	subNode *temp;
 	while (targetNode->subNodeHead != NULL)
 	{
 		temp = targetNode->subNodeHead;
@@ -265,7 +271,7 @@ void deleteNode(int position, node *originNode)
 		p = q;
 		q = q->nextNode;
 	}
-	//deleteAllSubNodes(q);
+	deleteAllSubNodes(q);
 	p->nextNode = q->nextNode;
 	p->nextNode->previousNode = p;
 	free(q);
@@ -278,6 +284,7 @@ void deleteList(node *originNode)
 
 		deleteNode(1, originNode);
 	}
+	deleteAllSubNodes(originNode);
 }
 
 //Print list has been implemented for you.
