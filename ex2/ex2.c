@@ -21,6 +21,7 @@ typedef struct NODE
 	struct NODE *previousNode;
 	struct NODE *nextNode;
 	subNode *subNodeHead;
+	int index;
 } node;
 
 // Function prototypes
@@ -31,7 +32,7 @@ void deleteList(node *);				   // TODO
 void insertSubNode(int, int, int, node *); // TODO
 void deleteAllSubNodes(node *);			   // Optional TODO: will be useful in ex3.
 void insertSubNodeNext(int, int, subNode *);
-int getCount(subNode*);
+int getCount(subNode *);
 
 void printList(node *);		// Implemented for you
 void printSubNodes(node *); // Implemented for you :Helper function for print list
@@ -77,7 +78,7 @@ int main()
 	}
 
 	printList(originNode);
-	//deleteList(originNode);
+	deleteList(originNode);
 
 	printf("Circular List after delete\n");
 	printList(originNode);
@@ -86,38 +87,62 @@ int main()
 	return 0;
 }
 
+node *getNode(int position, node *originNode)
+{
+	node *p = originNode;
+	if (position == 0)
+		return originNode;
+	for (int i = 0; i < position; i++)
+	{
+		if (p->nextNode == NULL)
+			return p;
+		p = p->nextNode;
+	}
+
+	return p;
+}
 //Function Implementations
 void insertSubNode(int position, int subPosition, int value, node *originNode)
 {
 	int i;
 	subNode *p, *r;
-	node *q;
-	q = originNode;
-	p = (subNode *)
-		malloc(sizeof(subNode));
-	p->data = value;
-		for (i = 0; i < position; i++)
-		{
-			q = q->nextNode;
-		}
+	node *q = getNode(position, originNode);
 
-	
-	if (q->subNodeHead == NULL){
-		subNode * s = (subNode *)
-		malloc(sizeof(subNode));
-		s->data = value;
-		s->nextSubNode = q->subNodeHead;
-		q->subNodeHead = s;
-	
-	}else{
-		insertSubNodeNext(subPosition, value, q->subNodeHead);
+
+	if (q->subNodeHead == NULL || subPosition == 0)
+	{
+		p = q->subNodeHead;
+		subNode *temp = (subNode *)
+			malloc(sizeof(subNode));
+		temp->data = value;
+		temp->nextSubNode = q->subNodeHead;
+		q->subNodeHead = temp;
+	}
+	else
+	{
+		subNode *temp = (subNode *)
+			malloc(sizeof(subNode));
+		temp->data = value;
+		p = q->subNodeHead;
+		int added = 0;
+
+		for (int i = 0; i < subPosition - 1; i++)
+		{
+			p = p->nextSubNode;
+			}
+		if (added == 0)
+		{
+
+			temp->nextSubNode = p->nextSubNode;
+			p->nextSubNode = temp;
+		}
 	}
 }
 
 /* Counts no. of nodes in linked list */
 int getCount(subNode *head)
 {
-	int count = 0;		  // Initialize count
+	int count = 0;			 // Initialize count
 	subNode *current = head; // Initialize current
 	while (current != NULL)
 	{
@@ -134,9 +159,6 @@ void insertNodePrevious(int position, int value, node *originNode)
 	p = (node *)
 		malloc(sizeof(node));
 	p->data = value;
-	// 	int someInt = position;
-	// char str[12];
-	// sprintf(str, "%d", someInt);
 	p->nextNode = NULL;
 	q = originNode;
 	if (position > 0)
@@ -149,49 +171,17 @@ void insertNodePrevious(int position, int value, node *originNode)
 		p->previousNode = q;
 		p->nextNode = q->nextNode;
 
-		// rebuild old links(watch the order)
 		q->nextNode->previousNode = p;
 		q->nextNode = p;
 	}
 	else
 	{
-		// build new links
 		p->nextNode = originNode;
 		p->previousNode = originNode->previousNode;
-
-		// rebuild old links(watch the order)
 		originNode->previousNode->nextNode = p;
 		originNode->previousNode = p;
 	}
 }
-
-void insertSubNodeNext(int position, int value, subNode *sub)
-{
-	subNode *p;
-	p = (subNode *)
-		malloc(sizeof(subNode));
-	if (p == NULL) return;
-	p->data = value;
-	 subNode* current = sub;
-     subNode* previous = NULL;
-
-    int i = 0;
-
-    while (i < position) {
-      previous = current;
-      current = current->nextSubNode;
-
-      if (current == NULL) {
-        break;
-      }
-
-       i++;
-      }
-
-      p->nextSubNode = current;
-      previous->nextSubNode = p;
-}
-
 
 void insertNodeNext(int position, int value, node *originNode)
 {
@@ -201,19 +191,17 @@ void insertNodeNext(int position, int value, node *originNode)
 		malloc(sizeof(node));
 	p->data = value;
 
-	p->nextNode = NULL;
 	q = originNode;
 	for (i = 0; i < position; i++)
 	{
 		q = q->nextNode;
 	}
-	p->previousNode = originNode;
+	p->previousNode = q;
 	p->nextNode = q->nextNode;
 
 	q->nextNode->previousNode = p;
 	q->nextNode = p;
 }
-
 void deleteNode(int position, node *originNode)
 {
 	node *p, *q;
@@ -224,33 +212,47 @@ void deleteNode(int position, node *originNode)
 		p = q;
 		q = q->nextNode;
 	}
-
+	//deleteAllSubNodes(q);
 	p->nextNode = q->nextNode;
+	p->nextNode->previousNode = p;
 	free(q);
+}
+
+void deleteSubNode(int position, subNode *originNode)
+{
+	subNode *p = NULL;
+	subNode *q = originNode;
+	int i;
+	for (i = 0; i < position; i++)
+	{
+		
+		q = q->nextSubNode;
+	}
+	p = q->nextSubNode;
+	q->nextSubNode = p->nextSubNode;
+
+	free(p);
 }
 
 void deleteAllSubNodes(node *targetNode)
 {
-	// Optional TODO
-	// it is advised to use a helper function in conjunction with deleteNode().
+	subNode *p = targetNode->subNodeHead;
+	while (p->nextSubNode != NULL)
+	{
+			
+		deleteSubNode(1, targetNode->subNodeHead);
+	}
 }
 
 void deleteList(node *originNode)
-{
-    node *p;
-    p = originNode;
-    node *q;
-    while (p->nextNode != originNode || p != originNode)
-    {
-        q = (node *)malloc(sizeof(node));
-		if (q == NULL) return;
-        q = p;
-        p = p->nextNode;
-        
-        q->nextNode = p->nextNode;
-        p->previousNode = originNode;
-        free(q);
-    }
+{	
+	node *p = originNode;
+	while (p->nextNode != originNode)
+	{
+
+		deleteNode(1, originNode);
+	}
+    
 }
 
 //Print list has been implemented for you.

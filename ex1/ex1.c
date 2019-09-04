@@ -112,13 +112,12 @@ void insertNodeNext(int position, int value, node *originNode)
 		malloc(sizeof(node));
 	p->data = value;
 
-	p->nextNode = NULL;
 	q = originNode;
-	for (i = 0; i < position; i++)
+	for (i = 0; i < position - 1; i++)
 	{
 		q = q->nextNode;
 	}
-	p->previousNode = originNode;
+	p->previousNode = q;
 	p->nextNode = q->nextNode;
 
 	q->nextNode->previousNode = p;
@@ -132,32 +131,24 @@ void deleteNode(int position, node *originNode)
 	int i;
 	for (i = 0; i < position; i++)
 	{
-		q = (node *)malloc(sizeof(node));
 		p = q;
 		q = q->nextNode;
 	}
 
 	p->nextNode = q->nextNode;
+	p->nextNode->previousNode = p;
 	free(q);
-
-
 }
 
 void deleteList(node *originNode)
-{
-	node *p;
+{	node *p;
 	p = originNode;
 	node *q;
-	while (p->nextNode != originNode || p != originNode)
+	while (p->nextNode != originNode)
 	{
-		q = (node *)malloc(sizeof(node));
-		q = p;
-		p = p->nextNode;
-
-		q->nextNode = p->nextNode;
-		p->previousNode = originNode;
-		free(q);
+		deleteNode(1, originNode);
 	}
+    
 }
 
 // printList has been implemented for you.
