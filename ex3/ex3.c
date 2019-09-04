@@ -14,30 +14,29 @@
 typedef struct SUBNODE
 {
 	int data;
-	struct SUBNODE* nextSubNode;
+	struct SUBNODE *nextSubNode;
 } subNode;
 
 typedef struct NODE
 {
 	int data;
-	struct NODE* previousNode;
-	struct NODE* nextNode;
-	subNode* subNodeHead;
+	struct NODE *previousNode;
+	struct NODE *nextNode;
+	subNode *subNodeHead;
 } node;
 
-// Function prototypes 
+// Function prototypes
 
-void insertNodeNext(int,int,node*); 
-void insertNodePrevious(int,int,node*);
-void deleteNode(int,node*);
-void printList(node*);
-void printSubNodes(node*);
-void deleteList(node*);
-void insertSubNode(int,int,int,node*);
-void deleteAllSubNodes(node*);
+void insertNodeNext(int, int, node *);
+void insertNodePrevious(int, int, node *);
+void deleteNode(int, node *);
+void printList(node *);
+void printSubNodes(node *);
+void deleteList(node *);
+void insertSubNode(int, int, int, node *);
+void deleteAllSubNodes(node *);
 
-void collapseSubNodes(int, node*); //TODO 
-
+void collapseSubNodes(int, node *); //TODO
 
 // Start of main
 int main()
@@ -46,88 +45,114 @@ int main()
 	int instruction;
 	int subPosition;
 	int value;
-	
+
+	//function pointers
+	typedef void (*insertNodeNextptr)(int, int, node *);
+	insertNodeNextptr insertNodeNextCall = insertNodeNext;
+	typedef void (*deleteNodeptr)(int, node *);
+	deleteNodeptr deleteNodeCall = deleteNode;
+	typedef void (*insertSubNodeptr)(int, int, int, node *);
+	insertSubNodeptr insertSubNodeCall = insertSubNode;
+	typedef void (*insertNodePreviousptr)(int, int, node *);
+	insertNodePreviousptr insertNodePreviousCall = insertNodePrevious;
+	typedef void (*collapseptr)(int, node *);
+	collapseptr collapseCall = collapseSubNodes;
+
 	// Declaration of the origin Node
-	node* originNode = (node*)malloc(sizeof(node));
+	node *originNode = (node *)malloc(sizeof(node));
 	originNode->previousNode = originNode;
 	originNode->nextNode = originNode;
 	originNode->data = 0;
 	originNode->subNodeHead = NULL;
-	
-	
-	
-	while(scanf("%i%i",&instruction,&position) == 2)
-		//scanf() returns an int that corresponds to the number of values scanned. 
+
+	// input and processing has been done for you
+	while (scanf("%i%i", &instruction, &position) == 2)
+	//scanf() returns an int that corresponds to the number of values scanned.
 	{
-		// TODO: You would have to implement input and processing yourself. 
+		if (instruction == DELETE)
+		{
+			deleteNodeCall(position, originNode);
+		}
+		else if (instruction == INSERTSUBNODE)
+		{
+			scanf("%i%i", &subPosition, &value);
+			insertSubNodeCall(position, subPosition, value, originNode);
+		}
+		else if (instruction == NEXT)
+		{
+			scanf("%i", &value);
+			insertNodeNextCall(position, value, originNode);
+		}
+		else if (instruction == PREVIOUS)
+		{
+			scanf("%i", &value);
+			insertNodePreviousCall(position,value, originNode);
+		}else if (instruction == COLLAPSE){
+			scanf("%i", &value);
+			collapseCall(position, originNode);
+		}
 	}
 	printList(originNode);
 	deleteList(originNode);
-	
+
 	printf("Circular List after delete\n");
 	printList(originNode);
-	
+
 	free(originNode);
-	
+
 	return 0;
 }
 
+//Function Implementations
 
-//Function Implementations 
-
-void collapseSubNodes(int position,node* targetNode)
+void collapseSubNodes(int position, node *targetNode)
 {
+
 	int total = 0;
-	if (targetNode != NULL){
-		if (targetNode->subNodeHead != NULL){
-			node *p = targetNode->subNodeHead;
-			while(p){
-				p = p->nextNode;
+		if (targetNode->subNodeHead != NULL)
+		{
+					
+			subNode *p = targetNode->subNodeHead;
+			
+			for (int i = 0; i < position + 1; i++)
+			{	
 				total += p->data;
+				p = p->nextSubNode;
+				
+
 			}
-		}
+	
+	
 	}
 
-	free(targetNode->subNodeHead);
-	node *r = (node *)malloc(sizeof(node));
-	r->data = total + targetNode->data;
-	node *prev = targetNode->previousNode;
-	node *next = targetNode->nextNode;
-	prev->nextNode = r;
-	r->nextNode = next;
+	deleteAllSubNodes(targetNode);
 }
 
-void insertNodeNext(int position,int value, node* originNode)
+void insertNodeNext(int position, int value, node *originNode)
 {
 	node *p, *q;
 	int i;
-	p = (node *)
-		malloc(sizeof(node));
+	p = (node *)malloc(sizeof(node));
 	p->data = value;
 
-	p->nextNode = NULL;
 	q = originNode;
 	for (i = 0; i < position; i++)
 	{
 		q = q->nextNode;
 	}
-	p->previousNode = originNode;
+	p->previousNode = q;
 	p->nextNode = q->nextNode;
 
 	q->nextNode->previousNode = p;
 	q->nextNode = p;
-}	
+}
 
-void insertNodePrevious(int position,int value, node* originNode)
+void insertNodePrevious(int position, int value, node *originNode)
 {
 	node *p, *q;
 	int i;
-	p = (node *)
-		malloc(sizeof(node));
+	p = (node *)malloc(sizeof(node));
 	p->data = value;
-	// 	int someInt = position;
-	// char str[12];
-	// sprintf(str, "%d", someInt);
 	p->nextNode = NULL;
 	q = originNode;
 	if (position > 0)
@@ -140,53 +165,97 @@ void insertNodePrevious(int position,int value, node* originNode)
 		p->previousNode = q;
 		p->nextNode = q->nextNode;
 
-		// rebuild old links(watch the order)
 		q->nextNode->previousNode = p;
 		q->nextNode = p;
 	}
 	else
 	{
-		// build new links
 		p->nextNode = originNode;
 		p->previousNode = originNode->previousNode;
-
-		// rebuild old links(watch the order)
 		originNode->previousNode->nextNode = p;
 		originNode->previousNode = p;
 	}
 }
+node *getNode(int position, node *originNode)
+{
+	node *p = originNode;
+	if (position == 0)
+		return originNode;
+	for (int i = 0; i < position; i++)
+	{
+		if (p->nextNode == NULL)
+			return p;
+		p = p->nextNode;
+	}
 
-void insertSubNode(int position,int subPosition,int value,node* originNode)
+	return p;
+}
+
+void insertSubNode(int position, int subPosition, int value, node *originNode)
 {
 	int i;
 	subNode *p, *r;
-	node *q;
-	q = originNode;
-	p = (subNode *)
-		malloc(sizeof(subNode));
-	p->data = value;
-		for (i = 0; i < position; i++)
+	node *q = getNode(position, originNode);
+
+	if (q->subNodeHead == NULL || subPosition == 0)
+	{
+		p = q->subNodeHead;
+		subNode *temp = (subNode *)
+			malloc(sizeof(subNode));
+		temp->data = value;
+		temp->nextSubNode = q->subNodeHead;
+		q->subNodeHead = temp;
+	}
+	else
+	{
+		subNode *temp = (subNode *)
+			malloc(sizeof(subNode));
+		temp->data = value;
+		p = q->subNodeHead;
+		int added = 0;
+
+		for (int i = 0; i < subPosition - 1; i++)
 		{
-			q = q->nextNode;
+			p = p->nextSubNode;
 		}
+		if (added == 0)
+		{
 
-
-	if (q->subNodeHead == NULL){
-		q-> subNodeHead = (subNode *)
-		malloc(sizeof(subNode));
-	}else if(subPosition == 0){
-		q->subNodeHead = p;
-
-	}else
-		insertSubNodeNext(subPosition, value, q->subNodeHead);
+			temp->nextSubNode = p->nextSubNode;
+			p->nextSubNode = temp;
+		}
+	}
 }
 
-void deleteAllSubNodes (node* targetNode)
+void deleteSubNode(int position, subNode *originNode)
 {
-	// Use implementation from ex2. 
+	subNode *p = NULL;
+	subNode *q = originNode;
+	int i;
+	for (i = 0; i < position; i++)
+	{
+
+		q = q->nextSubNode;
+	}
+	p = q->nextSubNode;
+	q->nextSubNode = p->nextSubNode;
+
+	free(p);
 }
 
-void deleteNode (int position,node* originNode)
+void deleteAllSubNodes(node *targetNode)
+{
+	subNode * temp;
+	while (targetNode->subNodeHead != NULL)
+	{
+		temp = targetNode->subNodeHead;
+		targetNode->subNodeHead = targetNode->subNodeHead->nextSubNode;
+		free(temp);
+		//deleteSubNode(1, targetNode->subNodeHead);
+	}
+}
+
+void deleteNode(int position, node *originNode)
 {
 	node *p, *q;
 	q = originNode;
@@ -196,69 +265,60 @@ void deleteNode (int position,node* originNode)
 		p = q;
 		q = q->nextNode;
 	}
-
+	//deleteAllSubNodes(q);
 	p->nextNode = q->nextNode;
+	p->nextNode->previousNode = p;
 	free(q);
 }
-
-void deleteList(node* originNode)
+void deleteList(node *originNode)
 {
-	node *p;
-    p = originNode;
-    node *q;
-    while (p->nextNode != originNode || p != originNode)
-    {
-        q = (node *)malloc(sizeof(node));
-        q = p;
-        p = p->nextNode;
-        
-        q->nextNode = p->nextNode;
-        p->previousNode = originNode;
-        free(q);
-    } 
+	node *p = originNode;
+	while (p->nextNode != originNode)
+	{
+
+		deleteNode(1, originNode);
+	}
 }
 
-
-
-//Print list has been implemented for you. 
-void printList(node* originNode)
+//Print list has been implemented for you.
+void printList(node *originNode)
 {
 	int count = 0;
 	printf("Printing clockwise:\n");
-	node* iterator = originNode->nextNode;
-	printf("[Pos %i:%i]",0,originNode->data);
+	node *iterator = originNode->nextNode;
+	printf("[Pos %i:%i]", 0, originNode->data);
 	// printing subNodes
 	printSubNodes(originNode);
 	printf("\n   |\n   v\n");
-	while(iterator != originNode)
+	while (iterator != originNode)
 	{
 		count++;
-		printf("[Pos %i:%i]",count,iterator->data);
+		printf("[Pos %i:%i]", count, iterator->data);
 		// printing subNodes
 		printSubNodes(iterator);
 		printf("\n   |\n   v\n");
 		iterator = iterator->nextNode;
 	}
-	printf("[Pos %i:%i]",0,originNode->data);
+	printf("[Pos %i:%i]", 0, originNode->data);
 	// printing subNodes
-	printSubNodes(originNode);		
-	
+	printSubNodes(originNode);
+
 	printf("\nPrinting counter-clockwise:\n");
 	iterator = originNode->previousNode;
-	printf("[Pos %i:%i]",0,originNode->data);
+	printf("[Pos %i:%i]", 0, originNode->data);
 	// printing subNodes
 	printSubNodes(originNode);
 	printf("\n   |\n   v\n");
-	while(iterator!= originNode)
+	while (iterator != originNode)
 	{
-		printf("[Pos %i:%i]",count,iterator->data);
+		printf("[Pos %i:%i]", count, iterator->data);
 		// printing subNodes
 		printSubNodes(iterator);
 		printf("\n   |\n   v\n");
 		iterator = iterator->previousNode;
 		count--;
 	}
-	printf("[Pos %i:%i]",0,originNode->data);	
+	printf("[Pos %i:%i]", 0, originNode->data);
 	// printing subNodes
 	printSubNodes(originNode);
 	printf("\n");
@@ -266,13 +326,13 @@ void printList(node* originNode)
 	return;
 }
 
-void printSubNodes(node* mainNode)
+void printSubNodes(node *mainNode)
 {
 	int count = 0;
-	subNode* iterator = mainNode->subNodeHead;
-	while(iterator != NULL)
+	subNode *iterator = mainNode->subNodeHead;
+	while (iterator != NULL)
 	{
-		printf("->[subNode pos %i:%i]",count,iterator->data);
+		printf("->[subNode pos %i:%i]", count, iterator->data);
 		iterator = iterator->nextSubNode;
 		count++;
 	}

@@ -108,7 +108,6 @@ void insertSubNode(int position, int subPosition, int value, node *originNode)
 	subNode *p, *r;
 	node *q = getNode(position, originNode);
 
-
 	if (q->subNodeHead == NULL || subPosition == 0)
 	{
 		p = q->subNodeHead;
@@ -129,7 +128,7 @@ void insertSubNode(int position, int subPosition, int value, node *originNode)
 		for (int i = 0; i < subPosition - 1; i++)
 		{
 			p = p->nextSubNode;
-			}
+		}
 		if (added == 0)
 		{
 
@@ -212,7 +211,8 @@ void deleteNode(int position, node *originNode)
 		p = q;
 		q = q->nextNode;
 	}
-	//deleteAllSubNodes(q);
+	deleteAllSubNodes(q);
+
 	p->nextNode = q->nextNode;
 	p->nextNode->previousNode = p;
 	free(q);
@@ -225,7 +225,7 @@ void deleteSubNode(int position, subNode *originNode)
 	int i;
 	for (i = 0; i < position; i++)
 	{
-		
+
 		q = q->nextSubNode;
 	}
 	p = q->nextSubNode;
@@ -233,26 +233,27 @@ void deleteSubNode(int position, subNode *originNode)
 
 	free(p);
 }
-
 void deleteAllSubNodes(node *targetNode)
 {
-	subNode *p = targetNode->subNodeHead;
-	while (p->nextSubNode != NULL)
+	subNode *temp;
+	while (targetNode->subNodeHead != NULL)
 	{
-			
-		deleteSubNode(1, targetNode->subNodeHead);
+		temp = targetNode->subNodeHead;
+		targetNode->subNodeHead = targetNode->subNodeHead->nextSubNode;
+		free(temp);
+		//deleteSubNode(1, targetNode->subNodeHead);
 	}
 }
 
 void deleteList(node *originNode)
-{	
+{
 	node *p = originNode;
 	while (p->nextNode != originNode)
 	{
 
 		deleteNode(1, originNode);
 	}
-    
+	deleteAllSubNodes(originNode);
 }
 
 //Print list has been implemented for you.
